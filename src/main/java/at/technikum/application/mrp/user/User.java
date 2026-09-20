@@ -1,4 +1,4 @@
-package at.technikum.application.model;
+package at.technikum.application.mrp.user;
 
 public class User {
 

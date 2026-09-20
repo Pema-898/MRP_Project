@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Server {
 
-    private final HttpServer server;
+    private final HttpServer server; //composition/"has-a" relationship
 
     public Server(int port) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
