@@ -1,4 +1,4 @@
-package at.technikum.mrp.server;
+package at.technikum.application.server;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -8,11 +8,11 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
-public class SimpleHttpServer {
+public class Server {
 
     private final HttpServer server;
 
-    public SimpleHttpServer(int port) throws IOException {
+    public Server(int port) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
         // Very small first endpoints for class 3 progress.
