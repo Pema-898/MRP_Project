@@ -1,0 +1,569 @@
+{
+  "info": {
+    "name": "MRP Intermediate — Class 13",
+    "description": "Run requests in order using Postman Collection Runner. Creates two unique test users and a media entry, checks authentication, authorization and media CRUD, then deletes the entry. Requires the intermediate-only routes to be installed. Does not test rating endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "ownerUsername",
+      "value": ""
+    },
+    {
+      "key": "otherUsername",
+      "value": ""
+    },
+    {
+      "key": "ownerToken",
+      "value": ""
+    },
+    {
+      "key": "otherToken",
+      "value": ""
+    },
+    {
+      "key": "mediaId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Registration and owner login",
+      "item": [
+        {
+          "name": "01 Register owner",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ownerUsername}}\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const name = 'mrp_' + Date.now() + '_' + Math.floor(Math.random()*100000);",
+                  "pm.collectionVariables.set('ownerUsername', name);",
+                  "pm.collectionVariables.set('otherUsername', name + '_other');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Login owner",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ownerUsername}}\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Token present\", () => pm.expect(data.token).to.be.a('string').and.not.empty);",
+                  "pm.collectionVariables.set('ownerToken',data.token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Media CRUD",
+      "item": [
+        {
+          "name": "03 Create media",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/media",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception MRP Demo\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });",
+                  "const m = pm.response.json();",
+                  "pm.test('Created media has an ID',()=>pm.expect(m.id).to.be.a('number'));",
+                  "pm.collectionVariables.set('mediaId',m.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 List media",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/media",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Media returned as array\",()=>pm.expect(pm.response.json()).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Get media by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test('Correct media ID',()=>pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('mediaId'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Update media as creator",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Inception MRP Updated\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 16\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test('Title updated',()=>pm.expect(pm.response.json().title).to.eql('Inception MRP Updated'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication checks",
+      "item": [
+        {
+          "name": "07 Missing authorization is rejected",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/media",
+            "header": []
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Invalid bearer token is rejected",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/media",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid-token"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ownership and validation checks",
+      "item": [
+        {
+          "name": "09 Register second user",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{otherUsername}}\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 Login second user",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{otherUsername}}\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.collectionVariables.set('otherToken',pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 Other user cannot update media",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{otherToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unauthorized change\",\n  \"description\": \"Sci-fi thriller\",\n  \"mediaType\": \"movie\",\n  \"releaseYear\": 2010,\n  \"genres\": [\n    \"sci-fi\",\n    \"thriller\"\n  ],\n  \"ageRestriction\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 Other user cannot delete media",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{otherToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "13 Duplicate username rejected",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{ownerUsername}}\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "14 Short username rejected",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/users/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"ab\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Delete and verify",
+      "item": [
+        {
+          "name": "15 Creator deletes media",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 204\", function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "16 Deleted media returns not found",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/media/{{mediaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ownerToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
