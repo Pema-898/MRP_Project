@@ -1,15 +1,16 @@
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: mrp-postgres
+    container_name: mrp-intermediate-db
     environment:
       POSTGRES_DB: mrp
       POSTGRES_USER: mrp
       POSTGRES_PASSWORD: mrp
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - mrp-postgres-data:/var/lib/postgresql/data
+      - mrp-intermediate-data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mrp -d mrp"]
@@ -18,4 +19,4 @@ services:
       retries: 10
 
 volumes:
-  mrp-postgres-data:
+  mrp-intermediate-data:

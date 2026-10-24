@@ -11,7 +11,7 @@ public class ConnectionFactory {
 
     public ConnectionFactory() {
         this(
-                System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5432/mrp"),
+                System.getenv().getOrDefault("DB_URL", "jdbc:postgresql://localhost:5433/mrp"),
                 System.getenv().getOrDefault("DB_USER", "mrp"),
                 System.getenv().getOrDefault("DB_PASSWORD", "mrp")
         );
