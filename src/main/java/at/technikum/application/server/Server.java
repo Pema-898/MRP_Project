@@ -46,16 +46,16 @@ public class Server {
         // Later this will come from MediaService / MediaRepository / PostgreSQL.
         String response =
                 "[\n" +
-                "  {\n" +
-                "    \"id\": 1,\n" +
-                "    \"title\": \"Inception\",\n" +
-                "    \"description\": \"Example media entry\",\n" +
-                "    \"mediaType\": \"movie\",\n" +
-                "    \"releaseYear\": 2010,\n" +
-                "    \"genres\": [\"sci-fi\", \"thriller\"],\n" +
-                "    \"ageRestriction\": 12\n" +
-                "  }\n" +
-                "]";
+                        "  {\n" +
+                        "    \"id\": 1,\n" +
+                        "    \"title\": \"Inception\",\n" +
+                        "    \"description\": \"Example media entry\",\n" +
+                        "    \"mediaType\": \"movie\",\n" +
+                        "    \"releaseYear\": 2010,\n" +
+                        "    \"genres\": [\"sci-fi\", \"thriller\"],\n" +
+                        "    \"ageRestriction\": 12\n" +
+                        "  }\n" +
+                        "]";
 
         sendResponse(exchange, 200, response);
     }
